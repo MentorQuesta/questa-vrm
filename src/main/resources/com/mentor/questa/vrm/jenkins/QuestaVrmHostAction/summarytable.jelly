@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 JenkinsQuestaVrmPlugin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <div id="summary-table-header" style="display:none">
+    </div>
+  <table class="pane sortable bigtable" id="summary-table" style="display:none;">
+ 	     
+      <j:set var="regrRes" value="${it.regressionResult}"/>
+      <tr class="headers">
+        <j:if test="${mode}">
+          <td class="pane-header action-col"  >Action</td>
+        </j:if>
+        <td class="pane-header">Testname</td>
+        <td class="pane-header" style="text-align:center" >Status</td>
+        <td class="pane-header" style="text-align:center" >Elapsed</td>
+        <td class="pane-header" style="text-align:center" >Duration</td>
+        <td class="pane-header" style="text-align:center" >Host</td>
+      </tr>
+      <tbody/>
+  </table>
+<st:once> 
+    <script type="text/javascript">
+    var summary = <st:bind value="${it}"/>
+    var mode = "${mode}" =="true";
+    function getLinkedCell(rowOutput, value, link){
+     var cellOutput = rowOutput.insertCell(-1)
+     cellOutput.class="pane"
+
+      var  a= document.createElement("a");
+      a.href = link;
+      a.class="model-link inside"
+      var result = document.createTextNode(value);
+      a.appendChild(result);
+      cellOutput.appendChild(a);
+
+    }
+
+    function getNormalCell2(rowOutput, a , align){
+   	var cellOutput = rowOutput.insertCell(-1)
+   	cellOutput.class="pane"
+   	cellOutput.style.textAlign = align
+    	var result = document.createTextNode(a);
+	cellOutput.appendChild(result);
+
+    }
+    function getNormalCell(rowOutput, a) {
+    	getNormalCell2(rowOutput, a, "center");
+    }
+    function getSummary(time){
+    	document.getElementById("summary-table").style.display="";
+    	document.getElementById("summary-table-header").style.display="";
+	var tbody = document.createElement("tbody");
+
+   	 summary.getActions(time,function(t) {
+   	 	var actions = t.responseObject();
+   	 	var emptyCell= {content:"--", tooltip:""};
+   	 	var table = document.getElementById("summary-table");
+
+    		document.getElementById("summary-table-header").innerHTML="&lt;h2&gt;Summary at time "+actions[0]+"&lt;//h2&gt;";
+   	 	for( i=1; i&lt; actions.length; i++) {
+   	 		if(!mode &amp;&amp; !actions[i].hasOwnProperty('testname') )
+   	 			continue;
+
+			var rowOutput = tbody.insertRow(-1);
+   	 		var a = actions[i]
+   	 		if (mode){
+   	 			getLinkedCell(rowOutput,a['action'], a['url']);
+   	 		}
+
+   	 		if (a.hasOwnProperty('testname')){
+				rowOutput.class="test-row"
+   	 			getLinkedCell(rowOutput,a['testname'], a['testurl']);
+			} else {
+
+   	 			getNormalCell2(rowOutput,"--", "left");
+				rowOutput.class="action-row"
+			}
+
+   	 		getNormalCell(rowOutput,a['status']);
+   	 		getNormalCell(rowOutput,a['age']);
+   	 		getNormalCell(rowOutput,a['duration']);
+   	 		getNormalCell(rowOutput,a['host']);
+   	 		}
+   	 	table.replaceChild(tbody,table.tBodies[1] )
+   	 });
+	 
+    }
+     </script>
+     </st:once>
+</j:jelly>

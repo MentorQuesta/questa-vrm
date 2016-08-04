@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 tellis.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+    <!-- Creates fields for user to notify where results will be placed. -->  
+        
+    <f:entry title="VRMDATA" field="vrmdata">
+        <f:textbox  />    
+    </f:entry> 
+    <f:entry  field="htmlReport" description="Publish the vrm html report to the project page." >
+        <f:checkbox title="Publish VRM HTML Results to Project Page" />
+    </f:entry>     
+    <f:entry field="collectCoverage" description="Publish the coverage results of the  mergefile(s) to jenkins." >
+        <f:checkbox  title="Publish Coverage Results"/>
+    </f:entry>
+    <j:invokeStatic var="testDataPublisherDescriptors"
+                        className="hudson.tasks.junit.TestDataPublisher" method="all" />
+    <j:if test="${testDataPublisherDescriptors.size() > 0}">
+        <f:entry title="Additional test report features" field="testDataPublishers">
+            <f:repeatableHeteroProperty field="testDataPublishers" hasHeader="true" oneEach="true"/>
+        </f:entry>
+    </j:if> 
+
+    <f:advanced>
+        <f:entry title="Path to Questa VRM Executable" field="vrunExec">
+            <f:textbox default="${descriptor.vrunExec}" /> 
+        </f:entry>
+        
+        <f:entry title="VRM HTML report directory" field="vrmhtmldir">
+            <f:textbox default="vrmhtmlreport" />    
+        </f:entry>       
+
+        <f:entry title="Additional vrun options" field="extraArgs">
+            <f:textbox default=""/>    
+        </f:entry> 
+        
+    </f:advanced>
+
+
+</j:jelly>

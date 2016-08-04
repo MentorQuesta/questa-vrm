@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 JenkinsQuestaVrmPlugin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:c="/lib/com/mentor/questa/vrm/jenkins" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<div style="display: table;">
+  <table class="pane" id="coverageSum" style="width: auto;">
+   <tr>
+     <th class="pane-header" align="left">Build</th>
+     <j:forEach var="header"  items="${it.coverageColumnHeaders}">
+       <td class="pane-header">${header}</td>
+     </j:forEach>
+   </tr>
+   <j:forEach var="row"  items="${it.rows}">
+     <j:set var="id" value="${row.get(0).value}"/>
+     <tr>
+      <!-- first row conrtains build inforamtion--> 
+       <td class="pane" title="${row.get(0).toolTip}">
+    	 <c:coverage-nested-rows-ctrl row="${row}" id="${id}"/> 
+         <a href="${rootURL}/${row.get(0).url}">
+           <img src="${imagesURL}/16x16/${row.get(0).imgSrc}"/>
+           ${row.get(0).value}
+         </a>
+       </td>
+      <!-- loop over remaining cells in the row--> 
+       <j:forEach var="rowitem" begin="1" end="8" items="${row}">
+         <td class="pane" title="${rowitem.toolTip}" style="text-align:center;">
+           ${rowitem.value}
+         </td>
+       </j:forEach>
+     </tr>
+
+     <c:coverage-nested-rows row="${row}" id="${id}"/> 
+   </j:forEach>
+  </table>
+     <j:if test="${it.hasMore()}">
+     <div id="more-link" style="text-align:right">
+     	<a  onclick="getData()" href="javascript:void(0);">More..</a>
+     </div>
+     </j:if>
+  </div>
+  <script>
+    var summary = <st:bind value="${it}"/>
+
+    function getBuildCell(cellOutput, row){
+     cellOutput.class="pane"
+     cellOutput.title = row[0]['tooltip']
+      var id= row[0]['content'];
+
+      if(row.length>9) {
+        var show = document.createElement("a");
+        show.id= id+"-showlink";
+        show.href = "javascript:showCoverageDetails(\'"+id+"\')";
+        show.title = "Show Details";
+        var icon =document.createElement("img");
+        icon.src = "${imagesURL}/16x16/document_add.png";
+	icon.class="icon-document-add icon-sm";
+	icon.style="width: 16 px; height: 16px;"
+	show.appendChild(icon);
+	cellOutput.appendChild(show)
+
+        var hide = document.createElement("a");
+        hide.id= id+"-hidelink";
+        hide.href = "javascript:hideCoverageDetails(\'"+id+"\')";
+        hide.title = "Hide Details";
+        hide.style.display = "none";
+        icon =document.createElement("img");
+        icon.src = "${imagesURL}/16x16/document_delete.png";
+	icon.class="icon-document-delete icon-sm";
+	icon.style="width: 16 px; height: 16px;"
+	hide.appendChild(icon);
+	cellOutput.appendChild(hide)
+      }
+
+      var  a= document.createElement("a");
+      a.href = "${rootURL}/"+row[0]['url'].valueOf();
+
+      var img = document.createElement("img");
+      img.src = "${imagesURL}/16x16/"+row[0]['imgSrc'].valueOf();
+      a.appendChild(img);
+
+      var result = document.createTextNode(row[0]['content']);
+      a.appendChild(result);
+
+      cellOutput.appendChild(a);
+
+    }
+
+    function getNormalCell(cellOutput, r){
+
+   	cellOutput.class="pane"
+   	cellOutput.style.textAlign = "center"
+   	cellOutput.title = r['tooltip']
+    	var result = document.createTextNode(r['content']);
+	cellOutput.appendChild(result);
+
+    }
+    function getData(){
+   	 summary.getJSONData(function(t) {
+   	 	var rows = t.responseObject();
+   	 	var emptyCell= {content:"--", tooltip:""};
+   	 	var table = document.getElementById("coverageSum");
+   	 	var tbody = document.createElement("tbody");
+   	 	for( i=0; i&lt; rows.length; i++) {
+      			var id= rows[i][0]['content']; 
+   	 		var tbody = document.createElement("tbody");
+   	 		tbody.class="pane"
+   	 		tbody.style.display="";
+   	 		var rowOutput = tbody.insertRow(-1);
+   	 		var cellOutput = rowOutput.insertCell(-1)
+   	 		getBuildCell(cellOutput, rows[i]);
+			var j = 1;
+   	 		for (; j &lt; 9 ; j++) {
+   	 			cellOutput = rowOutput.insertCell(-1);
+   	 			getNormalCell(cellOutput, rows[i][j]);
+   	 		}
+   	 		table.appendChild(tbody);
+			if (rows[i].length &gt; 9) {
+   	 			tbody = document.createElement("tbody");
+				tbody.class = "pane";
+				tbody.id = id;
+				tbody.style.display="none";
+
+				for (;j&lt; rows[i].length; j=j+8) {
+   	 			  var rowOutput = tbody.insertRow(-1);
+   	 			  cellOutput = rowOutput.insertCell(-1);
+   	 			  getNormalCell(cellOutput, rows[i][j]);
+   	 			  cellOutput.style= "text-align:right;";
+
+   	 			  cellOutput = rowOutput.insertCell(-1);
+				  getNormalCell(cellOutput, emptyCell);
+				  for(k=1; k&lt; 8; k++){
+   	 			    cellOutput = rowOutput.insertCell(-1);
+				    getNormalCell(cellOutput, rows[i][j+k]);
+				  }
+
+   	 			}
+   	 			table.appendChild(tbody);
+
+			}
+   	 	}
+
+   	 });
+   	summary.hasMore(function(t) {
+   	 	if( !t.responseObject()){
+			document.getElementById("more-link").style.display= "none";
+		}
+	});
+	 
+    }
+  </script>
+</j:jelly>

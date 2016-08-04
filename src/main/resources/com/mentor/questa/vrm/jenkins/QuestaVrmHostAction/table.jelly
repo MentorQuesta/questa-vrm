@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 JenkinsQuestaVrmPlugin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+ <h2>
+    <j:choose>
+        <j:when test="${mode}">All Actions</j:when>
+        <j:otherwise>All Tests</j:otherwise>
+    </j:choose>
+ </h2>
+  <table class="pane sortable bigtable" id="vrmregr">
+ 	     
+      <j:set var="regrRes" value="${it.regressionResult}"/>
+      <j:set var="prevAll" value="${regrRes.previousResult}"/>
+      <tr class="headers">
+        <j:if test="${mode}">
+        	<td class="pane-header action-col">Action</td>
+        </j:if>
+        <td class="pane-header">Testname</td>
+        <td class="pane-header" >Status</td>
+        <td class="pane-header" >Start Time</td>
+        <td class="pane-header" >End Time</td>
+        <td class="pane-header" >Duration</td>
+        <td class="pane-header" >Host</td>
+      </tr>
+
+      <j:forEach var="row" items="${regrRes.actions}">
+      
+      	<j:set var="rowaction" value="${row.getRelativeUrl()}"/>
+
+     
+        <j:if test="${mode || row.isTest()}">
+        <tr class="${row.isTest()?&quot;test&quot;:&quot;action&quot;}-row">
+        <j:if test="${mode}">
+		<td class="pane action-col" >
+     			<a href="${row.getRelativeUrl()}" class="model-link inside"> <st:out value="${row.action}"/></a>
+        	</td>
+        </j:if> 
+       <td class="pane" >
+         <j:choose >
+           <j:when test="${row.isTest()}">
+            	<a href="${row.getTestUrl()}" class="model-link inside"> <st:out value="${row.getTestname()}"/></a>
+           </j:when>
+           <j:otherwise>
+            	<st:out value="--"/>
+           </j:otherwise>
+         </j:choose>
+       </td>
+       <td class="pane" >${row.status}</td>
+       <td class="pane" data="${row.startTime}">${row.startTimeString} </td>
+       <td class="pane" data="${row.doneTime}">${row.doneTimeString} </td>
+       <td class="pane" >${row.duration}</td>
+       <td class="pane" >${row.host}</td>
+       </tr>
+        </j:if>
+      </j:forEach>
+  </table>
+  <f:bottomButtonBar>
+        <a href="./flipMode">
+            <j:choose>
+                <!-- needs to strip whitespace here -->
+                <j:when test="${mode}">Show Tests</j:when>
+                <j:otherwise>Show Actions</j:otherwise>
+            </j:choose>
+        </a> 
+  </f:bottomButtonBar>
+</j:jelly>

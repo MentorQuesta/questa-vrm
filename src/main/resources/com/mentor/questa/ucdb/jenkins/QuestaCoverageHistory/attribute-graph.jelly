@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 JenkinsQuestaVrmPlugin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+    <j:set var="start" value="${it.getStart()}"/>
+    <j:set var="covResult" value="${it.getCoverageResult()}"/>        
+    <j:set var="url" value="${it.url}/history"/> 
+    <j:set var="end" value="${it.getEnd()}"/>
+    <j:set var="rangeParameters" value="start=${start}&amp;end=${end}"/>
+    <j:set var="rangeParametersImg" value="${rangeParameters}"/>
+    <j:if test="${imgQueryString != null}">
+        <j:set var="rangeParametersImg" value="${rangeParameters}&amp;${imgQueryString}"/>
+    </j:if>
+    <j:set var="rangeParametersMap" value="${rangeParametersImg}"/>
+    <j:if test="${mapQueryString != null}">
+        <j:set var="rangeParametersMap" value="${rangeParameters}&amp;${mapQueryString}"/>
+    </j:if>
+
+    <j:set var="width" value="${it.calcDefaultSize().width}"/>
+    <j:if test="${request.getParameter('width')!=null}">
+        <j:set var="width" value="${request.getParameter('width')}"/>
+    </j:if>
+    <j:set var="height" value="${it.calcDefaultSize().height}"/>
+    <j:if test="${request.getParameter('height')!=null}">
+        <j:set var="width" value="${request.getParameter('height')}"/>
+    </j:if>
+
+    <link href="${resURL}/plugin/questa-vrm/css/link-bar.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="${resURL}/plugin/questa-vrm/js/attributes.js"/>
+    <j:set var="attrPublishers" value="${it.attributesPublishers}"/>       
+    <j:set var="uniqueid" value="${h.generateId()}"/> 
+    <div id="${uniqueid}-attributes-div" style="width:${width+20};height:${height+20}; overflow:auto; overflow-x:hidden;">
+        <j:if test="${it.historyAvailable() &amp;&amp; !attrPublishers.isEmpty() }">
+            <j:set var="activePub" value="${attrPublishers.get(0)}"/>       
+            <j:set var="activeAttribute" value="${activePub.safeName}"/>        
+            <div id="${uniqueid}-graphTitle" class="test-trend-caption">
+                ${activePub.graphName}
+            </div>
+            <div align="center">
+
+                <img id="${uniqueid}-${activeAttribute}-graph" src="${url}/attributeGraph/${activeAttribute}/png?${rangeParametersImg}" lazymap="${url}/attributeGraphMap/${activeAttribute}/map?${rangeParametersMap}" alt="[${activePub.graphName}]"/>
+
+                <j:forEach var="pub" begin="${1}" items="${attrPublishers}" >
+                    <img id="${uniqueid}-${pub.safeName}-graph" src="${url}/attributeGraph/${pub.safeName}/png?${rangeParametersImg}" lazymap="${url}/attributeGraphMap/${pub.safeName}/map?${rangeParametersMap}" alt="[${pub.graphName}]" style="display:none;"/>
+                </j:forEach>
+                <br/>
+                <j:if test="${attrPublishers.size() &gt; 1}">
+                    <select id="${uniqueid}" onchange="updateGraph(this)">
+                        <option  value="${activePub.safeName}" selected="selected">${activePub.graphName}</option>
+                        <j:forEach var="pub" begin="${1}" items="${attrPublishers}" >
+                            <option value="${pub.safeName}" >${pub.graphName}</option>
+                        </j:forEach>
+                    </select>
+                </j:if>
+                </div>
+        </j:if>
+    
+ 
+    <div id="attribute-links" align="right">
+        <j:if test="${!it.availableAttributes.isEmpty()}">
+            <l:hasPermission permission="${it.testObject.run.UPDATE}">
+                <a id="attribute-edit" href="${url}/edit-page" onclick="${h.isAutoRefresh(request) ? null : 'return replaceAttribute(&quot;'+url+'&quot;, &quot;'+uniqueid+'&quot;);'}">
+                    <l:icon class="icon-notepad icon-sm"/>
+                    edit attribute graphs
+                </a>
+            </l:hasPermission>
+            <script type="text/javascript" src="${resURL}/plugin/questa-vrm/js/attributes.js"/>
+            <st:once>
+                <script type="text/javascript">
+                    function updateGraph(select) {
+                    	var attrkey = select.value;
+                    	var uniqueid = select.id;
+        		for (var i=0; i&lt;select.options.length; i++) {
+        			opt = select.options[i];
+        			if (!opt.selected) {
+                    			document.getElementById(uniqueid+"-"+opt.value+"-graph").style.display = "none";
+        			}
+        		}
+                    	document.getElementById(uniqueid+"-graphTitle").innerHTML = select.options[select.selectedIndex].text;
+                    	document.getElementById(uniqueid+"-"+attrkey+"-graph").style.display = "";
+                    }
+                </script>
+            </st:once>
+        </j:if>
+                    
+    </div>
+</div>
+
+
+    
+</j:jelly>

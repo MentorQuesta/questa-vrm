@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 JenkinsQuestaVrmPlugin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <j:set var="covResult" value="${it.getCoverageResult()}"/> 
+  <j:set var="trendableAttributes" value="${it.trendableAttributes}"/>        
+  <j:set var="start" value="${it.getStart()}"/>
+  <j:set var="end" value="${it.getEnd()}"/>
+  <table class="pane sortable bigtable" style="width=100%;overflow-x:auto; overflow-y:hidden" id="testresult">
+    <tr>
+      <td class="pane-header" style="width:10em">${%Build}</td>
+      <td class="pane-header" >Total Coverage</td>
+      <td class="pane-header" >Testplan Coverage</td>
+       <j:forEach var="attributeKey" items="${trendableAttributes}">
+              <td class="pane-header">${attributeKey}</td>
+       </j:forEach>
+            <j:choose>
+      	      <j:when test="${covResult.isTest()}">
+      		<td class="pane-header" >Test Result</td>
+              </j:when>
+              <j:otherwise>
+      		<td class="pane-header" >Fail</td>
+      		<td class="pane-header" >Skip</td>
+      		<td class="pane-header" >Total</td>
+              </j:otherwise>
+            </j:choose>
+    </tr>
+    <tbody>
+      <j:forEach var="test" items="${it.getList(start, end)}">
+	<j:set var="covRes" value="${it.getCoverageResultFromTest(test)}"/>        
+        <j:if test="${covRes != null}">
+          <tr>
+            <td class="pane">
+              <a href="${app.rootUrl}${test.run.url}questavrmTestReport${p.url}" class="model-link inside">${test.run.fullDisplayName}</a>
+              <j:forEach var="badge" items="${test.testActions}">
+                <st:include it="${badge}" page="badge.jelly" optional="true"/>
+              </j:forEach>
+            </td>
+            <td class="pane" >${covRes.totalCoverage}</td>
+            <td class="pane" >${covRes.testplanCov}</td>
+            <j:forEach var="attributeKey" items="${trendableAttributes}">
+                   <td class="pane">${covRes.getAttributeValue(attributeKey)}</td>
+            </j:forEach>
+            <j:choose>
+      	      <j:when test="${covResult.isTest()}">
+                <td class="pane">
+                  <j:set var="pst" value="${test.status}" />
+                  <span class="${pst.cssClass}">
+                    ${pst.message}
+                  </span>
+                </td>
+              </j:when>
+              <j:otherwise>
+                <td class="pane">${test.failCount}</td>
+                <td class="pane">${test.skipCount}</td>
+                <td class="pane">${test.totalCount}</td>
+              </j:otherwise>
+            </j:choose>
+          </tr>
+        </j:if>
+      </j:forEach>
+    </tbody>
+  </table>
+</j:jelly>
+

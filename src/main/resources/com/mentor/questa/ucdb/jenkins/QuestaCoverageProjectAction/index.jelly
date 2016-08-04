@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+The MIT License
+
+Copyright 2016 JenkinsQuestaVrmPlugin.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+
+<?jelly escape-by-default='true'?>
+
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:i="jelly:fmt" xmlns:l="/lib/layout" xmlns:t="/lib/hudson">
+    <l:layout title="Coverage">
+        <st:include page="sidepanel.jelly" it="${it.job}"/>
+        <link href="${resURL}/plugin/questa-vrm/css/link-bar.css" rel="stylesheet" type="text/css"/>
+        <l:main-panel>
+            <j:set var="attribute" value="${request.getParameter('attributes')}"/>
+            <j:set var="history" value="${it.getHistory()}"/>        
+    	    <j:set var="trendableAttributes" value="${history.trendableAttributes}"/>        
+            <j:set var="covResult" value="${history.getCoverageResult()}"/>        
+            <j:set var="imgQueryString" value="${request.queryString}"/>        
+            <j:set var="mapQueryString" value="rel=../&amp;${request.queryString}"/>        
+            <j:set var="url" value="history"/>
+            <j:choose> 
+                <j:when test="${attribute==null}">       
+                    <div class="test-trend-caption">
+                        Coverage Result Trend
+                    </div>
+                    <div align="center">
+                        <img id="coveragegraph" src="${url}/trendCoverage?${request.queryString}" lazymap="${url}/trendCoverageMap?rel=../&amp;${request.queryString}" alt="[Coverage graph]"/>
+                    </div>
+                </j:when>
+                <j:otherwise>
+       			<st:include from="${history}" it="${history}" page="attribute-graph.jelly" /> 
+                </j:otherwise>
+            </j:choose>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
