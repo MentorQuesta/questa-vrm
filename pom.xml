@@ -15,9 +15,9 @@
   <version>1.0.15</version>
   <packaging>hpi</packaging>
 
-  <name>Questa VRM Plugin</name>
+  <name>Questa VRM</name>
   <description>This plugin adds the ability for Jenkins to publish results from Mentor Graphics Questa Verification Run Manager (VRM).</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/QuestaVrm+Plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Questa+VRM+Plugin</url>
   <licenses>
     <license>
       <name>MIT License</name>
@@ -25,13 +25,11 @@
     </license>
   </licenses>  
   <developers>
-    <!-- id should be that of jenkins-ci.org account
     <developer>
-      <id>JenkinsQuestaVRMPlugin</id>
+      <id>questa_vrm</id>
       <name>JenkinsQuestaVRMPlugin</name>
       <email>JenkinsQuesta_VRMPlugin@mentor.com</email>
     </developer> 
-    -->
   </developers>  
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
