@@ -60,7 +60,7 @@ public class QuestaVrmPortlet extends DashboardPortlet {
     }
     
 
-    @Extension
+    @Extension(optional =true)
     public static class DescriptorImpl extends Descriptor<DashboardPortlet> {
 
         @Override
