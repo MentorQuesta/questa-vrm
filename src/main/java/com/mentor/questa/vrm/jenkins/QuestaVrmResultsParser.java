@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 JenkinsQuestaVrmPlugin.
+ * Copyright 2016 Mentor Graphics.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ import org.apache.tools.ant.types.FileSet;
 
 /**
  *
- * 
+ *
  */
 public class QuestaVrmResultsParser extends TestResultParser implements Serializable {
 
@@ -245,7 +245,7 @@ public class QuestaVrmResultsParser extends TestResultParser implements Serializ
 
                 OutputStreamWriter out = null;
                 try {
-                    File outFile = new File(junitOutputPath, "fake-jUnit.xml");
+                    File outFile = new File(junitOutputPath, "vm-jUnit.xml");
                     out = new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8");
                     out.write(regressionResult.getXmlSnippet(ws));
                 } finally {
@@ -356,3 +356,4 @@ public class QuestaVrmResultsParser extends TestResultParser implements Serializ
     }
 
 }
+

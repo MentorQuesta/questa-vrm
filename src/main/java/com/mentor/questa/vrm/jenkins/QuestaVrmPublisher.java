@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 JenkinsQuestaVrmPlugin.
+ * Copyright 2016 Mentor Graphics.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,9 @@ import hudson.AbortException;
 import hudson.DescriptorExtensionList;
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.Launcher.ProcStarter;
 import hudson.Proc;
+import hudson.Util;
 import hudson.model.Run;
 import hudson.model.Action;
 import hudson.model.Build;
@@ -58,6 +60,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -67,7 +71,7 @@ import org.kohsuke.stapler.StaplerRequest;
 /**
  * Publish VRM Results
  *
- * 
+ *
  */
 public class QuestaVrmPublisher extends Recorder {
 
@@ -193,7 +197,10 @@ public class QuestaVrmPublisher extends Recorder {
 
             String cmd = constructCmdString(build, listener);
             try {
-                Proc proc = launcher.launch(cmd, build.getEnvironment(listener), listener.getLogger(), getWorkspace(build));
+            	ProcStarter ps = launcher.launch();
+            	ps.cmds(Util.tokenize(cmd)).envs(build.getEnvironment(listener)).stdin(null).stdout(new ByteArrayOutputStream()).pwd(getWorkspace(build));
+            	ps.quiet(true);
+                Proc proc = launcher.launch(ps);
                 proc.join();
 
             } catch (IOException e) {
@@ -432,3 +439,4 @@ public class QuestaVrmPublisher extends Recorder {
     }
 
 }
+
