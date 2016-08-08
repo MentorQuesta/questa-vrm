@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 JenkinsQuestaVrmPlugin.
+ * Copyright 2016 Mentor Graphics.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,9 @@ import java.io.PrintStream;
 
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Launcher.ProcStarter;
 import hudson.Proc;
-
+import hudson.Util;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
@@ -49,7 +50,7 @@ import java.util.Map;
 /**
  * Parse Coverage XML Results
  *
- * 
+ *
  */
 public class QuestaCoverageTCLParser implements Serializable {
 
@@ -82,7 +83,7 @@ public class QuestaCoverageTCLParser implements Serializable {
 
         if (reports == null || reports.length == 0) {
             logger.println("***[Error]: Could not find any UCDB files."
-                    + "*** Coverage results for this run will not be recorded.");
+                    + " Coverage results for this run will not be recorded. ***");
             return results;
         }
 
@@ -114,7 +115,7 @@ public class QuestaCoverageTCLParser implements Serializable {
         String cmd = vcoverExec + " stats -stats=none -prec 4 -tcl " + inputfile;
         String vcoveroutput = "";
         try {
-            Proc proc = launcher.launch(cmd, env, outputstream, workspace);
+        	Proc proc = launchQuiet(workspace, launcher, env, outputstream, cmd);
             proc.join();
             vcoveroutput = outputstream.toString();
             mergeResult = parseCoverage(mergeResult.getCoverageId(), parseTcl(vcoveroutput, "Filename"));
@@ -131,7 +132,7 @@ public class QuestaCoverageTCLParser implements Serializable {
         outputstream.reset();
 
         try {
-            Proc proc = launcher.launch(cmd, env, outputstream, workspace);
+        	Proc proc = launchQuiet(workspace, launcher, env, outputstream, cmd);
             proc.join();
             vcoveroutput = outputstream.toString();
             parseTrendableAttributes(mergeResult.attributesValues, parseTcl(vcoveroutput, "ATTRIBUTE"));
@@ -147,7 +148,7 @@ public class QuestaCoverageTCLParser implements Serializable {
         cmd = vcoverExec + " attribute  -ucdb -tcl -trendable -stats=none " + inputfile;
         outputstream.reset();
         try {
-            Proc proc = launcher.launch(cmd, env, outputstream, workspace);
+        	Proc proc = launchQuiet(workspace, launcher, env, outputstream, cmd);
             proc.join();
             vcoveroutput = outputstream.toString();
             HashMap<String, String> attributes = new HashMap<String, String>();
@@ -166,6 +167,15 @@ public class QuestaCoverageTCLParser implements Serializable {
 
         return mergeResult;
     }
+
+	private Proc launchQuiet(FilePath workspace, Launcher launcher, Map<String, String> env,
+			ByteArrayOutputStream outputstream, String cmd) throws IOException {
+		ProcStarter ps = launcher.launch();
+		ps.cmds(Util.tokenize(cmd)).envs(env).stdin(null).stdout(outputstream).pwd(workspace);
+		ps.quiet(true);
+		Proc proc = launcher.launch(ps);
+		return proc;
+	}
     
     /**
      *
@@ -386,7 +396,13 @@ public class QuestaCoverageTCLParser implements Serializable {
             throw new AbortException("Poorly formed tcl list.");
         }
 
-        return (TclList)root.getChildren().getFirst();
+        // Added check in case of single element, since the first element will
+        // be a token not a list.
+        if (root.getChildren().getFirst() instanceof TclList) {
+        	return (TclList)root.getChildren().getFirst();
+        } else {
+        	return root;
+        }
     }
 
     private static class TclList extends TclToken {
@@ -479,3 +495,4 @@ public class QuestaCoverageTCLParser implements Serializable {
     };
 
 }
+

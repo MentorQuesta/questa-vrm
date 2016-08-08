@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 JenkinsQuestaVrmPlugin.
+ * Copyright 2016 Mentor Graphics.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import org.apache.tools.ant.types.FileSet;
 
 /**
  *
- * 
+ *
  */
 public class QuestaVrmJunitProcessor  implements Serializable {
     private FilePath getWorkspace(AbstractBuild build) {
@@ -75,7 +75,7 @@ public class QuestaVrmJunitProcessor  implements Serializable {
             }
 
             if (result.getPassCount() == 0 && result.getFailCount() == 0) {
-                logger.print("All test reports are empty.");
+                logger.println("All test reports are empty.");
             }
 
             if (existingAction == null) {
@@ -123,3 +123,4 @@ public class QuestaVrmJunitProcessor  implements Serializable {
     }
 
 }
+
