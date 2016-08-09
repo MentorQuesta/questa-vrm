@@ -26,8 +26,6 @@ package com.mentor.questa.vrm.jenkins;
 import hudson.FilePath;
 import hudson.model.Descriptor;
 import com.mentor.questa.ucdb.jenkins.QuestaCoverageTestDataPublisher;
-import htmlpublisher.HtmlPublisher;
-import htmlpublisher.HtmlPublisherTarget;
 import hudson.AbortException;
 import hudson.DescriptorExtensionList;
 import hudson.Extension;
@@ -36,11 +34,11 @@ import hudson.Launcher.ProcStarter;
 import hudson.Proc;
 import hudson.Util;
 import hudson.model.Run;
-import hudson.model.Action;
 import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.model.Result;
 import hudson.model.Saveable;
 import hudson.model.TaskListener;
@@ -52,9 +50,9 @@ import hudson.tasks.junit.TestDataPublisher;
 import hudson.tasks.junit.TestResultAction;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -179,12 +177,35 @@ public class QuestaVrmPublisher extends Recorder {
     }
 
     private void addVrmBuildActions(AbstractBuild<?, ?> build, BuildListener listener, QuestaVrmRegressionResult regressionResult) {
-        QuestaVrmRegressionBuildAction regressionAction = new QuestaVrmRegressionBuildAction(build);
+        QuestaVrmRegressionBuildAction regressionAction = new QuestaVrmRegressionBuildAction(build, isHtmlReport());
         regressionAction.setResult(regressionResult, listener);
         build.addAction(regressionAction);
         build.addAction(new QuestaVrmHostAction(build));
     }
+    
+    private File getTargetFile(Job job){
+        File targetDir =  new File(job.getRootDir(), "questavrmhtmlreport");
+        if (!targetDir.exists( )) {
+            targetDir.mkdir();
+        } 
+        return targetDir;  
+    }
 
+    private void archiveHTMLReport( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException,InterruptedException {
+        listener.getLogger().println("Archiving  VRM HTML report...");
+       
+        FilePath targetPath=new FilePath(getTargetFile(build.getParent()));
+        
+        FilePath archiveDir = getWorkspace(build).child(getVrmhtmldir());
+        if(!archiveDir.exists()) {
+            listener.getLogger().println("[ERROR]: VRM HTML report \'"+getVrmhtmldir()+"\' not found. Skipping archiving HTML Report for build #"+build.getNumber()+".");
+        } else {
+            targetPath.deleteContents();
+        }
+        archiveDir.copyRecursiveTo("**/*", targetPath);
+        
+    }
+    
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         if (!(build instanceof Build)) {
@@ -223,7 +244,7 @@ public class QuestaVrmPublisher extends Recorder {
             addVrmBuildActions(build, listener, regressionResult);
 
             if (isHtmlReport()) {
-                getHtmlPub().perform(build, launcher, listener);
+                archiveHTMLReport(build, launcher, listener);
             }
 
             // process data publishers
@@ -259,18 +280,6 @@ public class QuestaVrmPublisher extends Recorder {
         return BuildStepMonitor.NONE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
-        Collection<Action> actions = new ArrayList<Action>();
-        if (this.htmlReport) {
-            actions.addAll(getHtmlPub().getProjectActions(project));
-        }
-
-        return actions;
-    }
 
     @Override
     public DescriptorImpl getDescriptor() {
@@ -286,10 +295,7 @@ public class QuestaVrmPublisher extends Recorder {
         }
         return vrmhtmldir;
     }
-    
-    private HtmlPublisher getHtmlPub() {
-        return new HtmlPublisher(Collections.singletonList(new HtmlPublisherTarget("Questa VRM Report", vrmhtmldir, "index.html", false, true)));
-    }
+
 
     /**
      * @param vrmhtmldir the vrmhtmldir to set

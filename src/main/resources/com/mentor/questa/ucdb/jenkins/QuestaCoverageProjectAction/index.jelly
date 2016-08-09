@@ -28,7 +28,6 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:i="jelly:fmt" xmlns:l="/lib/layout" xmlns:t="/lib/hudson">
     <l:layout title="Coverage">
         <st:include page="sidepanel.jelly" it="${it.job}"/>
-        <link href="${resURL}/plugin/questa-vrm/css/link-bar.css" rel="stylesheet" type="text/css"/>
         <l:main-panel>
             <j:set var="attribute" value="${request.getParameter('attributes')}"/>
             <j:set var="history" value="${it.getHistory()}"/>        

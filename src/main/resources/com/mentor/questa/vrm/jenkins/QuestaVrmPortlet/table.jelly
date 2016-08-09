@@ -75,7 +75,7 @@ THE SOFTWARE.
 	document.addEventListener("DOMContentLoaded",function(){
 		onload();
 		var img = document.createElement("img");
-		img.src="${resURL}/plugin/questa-vrm/icons/mentorlogo.png"
+		img.src="${resURL}/plugin/mentor-questa-vrm/icons/mentorlogo.png"
 		img.height="20"
 		img.title="Mentor Graphics"
 		img.alt="[mentor logo]" 

@@ -28,7 +28,7 @@ THE SOFTWARE.
     <table style="margin-top: 1em; margin-left: 1em;">
         <j:set var="tr" value="${it.buildAction}"/>
         <j:if test="${tr != null}">
-            <t:summary icon="/plugin/questa-vrm/icons/vrm.png">
+            <t:summary icon="/plugin/mentor-questa-vrm/icons/vrm.png">
                 <a href="lastCompletedBuild/${tr.urlName}/">Latest Regression Result</a>
                 <st:nbsp/>
     		<j:set var="regr" value="${tr.result}" />

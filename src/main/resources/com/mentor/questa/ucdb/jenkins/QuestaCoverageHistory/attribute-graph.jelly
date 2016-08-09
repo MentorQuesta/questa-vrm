@@ -48,8 +48,7 @@ THE SOFTWARE.
         <j:set var="width" value="${request.getParameter('height')}"/>
     </j:if>
 
-    <link href="${resURL}/plugin/questa-vrm/css/link-bar.css" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript" src="${resURL}/plugin/questa-vrm/js/attributes.js"/>
+    <script type="text/javascript" src="${resURL}/plugin/mentor-questa-vrm/js/attributes.js"/>
     <j:set var="attrPublishers" value="${it.attributesPublishers}"/>       
     <j:set var="uniqueid" value="${h.generateId()}"/> 
     <div id="${uniqueid}-attributes-div" style="width:${width+20};height:${height+20}; overflow:auto; overflow-x:hidden;">
@@ -87,7 +86,7 @@ THE SOFTWARE.
                     edit attribute graphs
                 </a>
             </l:hasPermission>
-            <script type="text/javascript" src="${resURL}/plugin/questa-vrm/js/attributes.js"/>
+            <script type="text/javascript" src="${resURL}/plugin/mentor-questa-vrm/js/attributes.js"/>
             <st:once>
                 <script type="text/javascript">
                     function updateGraph(select) {

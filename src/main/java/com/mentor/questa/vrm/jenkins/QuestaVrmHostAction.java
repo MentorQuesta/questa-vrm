@@ -80,7 +80,7 @@ public class QuestaVrmHostAction implements RunAction2 {
 
     @Override
     public String getIconFileName() {
-        return "/plugin/questa-vrm/icons/bars.png";
+        return "/plugin/mentor-questa-vrm/icons/bars.png";
     }
 
     @Override

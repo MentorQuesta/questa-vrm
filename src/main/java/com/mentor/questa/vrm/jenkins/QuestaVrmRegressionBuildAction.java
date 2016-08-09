@@ -28,6 +28,7 @@ import com.thoughtworks.xstream.XStream;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.XmlFile;
+import hudson.model.Job;
 import hudson.tasks.BuildStepMonitor;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
@@ -39,6 +40,7 @@ import hudson.util.HeapSpaceStringConverter;
 import hudson.util.XStream2;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import jenkins.model.RunAction2;
 import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerProxy;
@@ -53,13 +55,13 @@ import org.kohsuke.stapler.StaplerProxy;
 public class QuestaVrmRegressionBuildAction  implements RunAction2, StaplerProxy, SimpleBuildStep.LastBuildAction {
     
     public transient Run<?,?> run;
-    
+    public final boolean htmlReport;
    
     private transient WeakReference<QuestaVrmRegressionResult> questaVrmResultRef;
      
-    public QuestaVrmRegressionBuildAction(AbstractBuild owner ) {
+    public QuestaVrmRegressionBuildAction(AbstractBuild owner, boolean htmlReport) {
         this.run= owner;
-        
+        this.htmlReport = htmlReport;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class QuestaVrmRegressionBuildAction  implements RunAction2, StaplerProxy
 
     @Override
     public String getIconFileName() {
-        return "/plugin/questa-vrm/icons/vrm.png";
+        return "/plugin/mentor-questa-vrm/icons/vrm.png";
     }
 
     @Override
@@ -93,11 +95,26 @@ public class QuestaVrmRegressionBuildAction  implements RunAction2, StaplerProxy
         return "questavrmreport";
     }
 
-    
+    private File getTargetFile(Job job){
+        File targetDir =  new File(job.getRootDir(), "questavrmhtmlreport");
+        if (!targetDir.exists( )) {
+            return null;
+        }
+        return targetDir;
+        
+        
+    }
    @Override 
    public Collection<? extends Action> getProjectActions() {
-        return Collections.singletonList(new QuestaVrmRegressionProjectAction(run.getParent(), run.getAction(TestResultAction.class)));
-     
+        Collection<Action> actions = new ArrayList<Action>();
+
+        File targetFile = getTargetFile(run.getParent());
+        if (htmlReport && targetFile!=null) {
+            actions.add(new QuestaVrmHTMLAction(targetFile, "questavrmhtmlreport", "index.html", this.getIconFileName(), "Questa VRM Report"));
+        }
+        
+        actions.add(new QuestaVrmRegressionProjectAction(run.getParent(), run.getAction(TestResultAction.class)));
+        return actions;
     }
    
     @Override

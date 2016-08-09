@@ -26,7 +26,7 @@ THE SOFTWARE.
 <?jelly escape-by-default='true'?>
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:test="/lib/hudson/test" xmlns:regr="/lib/com/mentor/questa/vrm/jenkins" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-     <t:summary icon="/plugin/questa-vrm/icons/vrm.png">
+     <t:summary icon="/plugin/mentor-questa-vrm/icons/vrm.png">
          <a href="${it.urlName}/">${it.displayName}</a>
     <j:set var="regr" value="${it.result}" />
     <regr:action-result/> 

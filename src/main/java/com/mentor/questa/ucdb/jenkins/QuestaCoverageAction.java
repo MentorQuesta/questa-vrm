@@ -91,7 +91,7 @@ public class QuestaCoverageAction extends TestAction {
 
     @Override
     public String getIconFileName() {
-        return "/plugin/questa-vrm/icons/report.png";
+        return "/plugin/mentor-questa-vrm/icons/report.png";
     }
 
     @Override

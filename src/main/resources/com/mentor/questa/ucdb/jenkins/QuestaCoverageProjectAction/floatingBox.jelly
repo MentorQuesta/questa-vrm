@@ -29,7 +29,6 @@ THE SOFTWARE.
     <j:if test="${history.historyAvailable()}">
     <j:set var="covResult" value="${history.getCoverageResult()}"/>        
     <j:set var="url" value="${from.urlName}/history"/>        
-    <link href="${resURL}/plugin/questa-vrm/css/link-bar.css" rel="stylesheet" type="text/css"/>
     <div class="test-trend-caption" title="${covResult.coverageId}">
         ${from.displayName}
     </div>
