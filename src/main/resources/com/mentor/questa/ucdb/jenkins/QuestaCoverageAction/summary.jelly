@@ -2,7 +2,7 @@
 <!--
 The MIT License
 
-Copyright 2016 Mentor Graphics.
+Copyright 2015 mamer.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,9 +57,9 @@ THE SOFTWARE.
                                         <j:set var="diff" value="${it.getDoubleDiffString(cov.getAttributeDoubleValue(attributeKey) - prevcov.getAttributeDoubleValue(attributeKey))}"/>
                 
                                         <tr> 
-                                            <td class="pane" >${attributeKey}</td>
-                                            <td class="pane" style="width:5em;">${cov.getAttributeValue(attributeKey)}</td>
-                                            <td class="pane" style="text-align:left" data="${cov.getAttributeDoubleValue(attributeKey) - prevcov.getAttributeDoubleValue(attributeKey)}">
+                                            <td class="pane" style="text-align:left" >${attributeKey}</td>
+                                            <td class="pane" style="text-align:right; width:5em;">${cov.getAttributeValue(attributeKey)}</td>
+                                            <td class="pane" style="text-align:right" data="${cov.getAttributeDoubleValue(attributeKey) - prevcov.getAttributeDoubleValue(attributeKey)}">
                                                 ${diff}
                                             </td>
                                         </tr>

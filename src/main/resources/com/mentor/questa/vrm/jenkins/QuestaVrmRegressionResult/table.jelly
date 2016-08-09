@@ -2,7 +2,7 @@
 <!--
 The MIT License
 
-Copyright 2016 Mentor Graphics.
+Copyright 2015 mamer.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ THE SOFTWARE.
 	<td class="pane" style="display:none;" id="${row.action}" >
      		<a href="${row.getRelativeUrl()}" class="model-link inside"> <st:out value="${row.action}"/></a>
         </td>
-       <td class="pane" >
+       <td class="pane" style="text-align:left">
          <j:choose >
            <j:when test="${row.isTest()}">
             	<a href="${row.getTestUrl()}" class="model-link inside"> <st:out value="${row.getTestname()}"/></a>
@@ -60,18 +60,18 @@ THE SOFTWARE.
            </j:otherwise>
          </j:choose>
        </td>
-       <td class="pane" >${row.seed}</td>
-       <td class="pane" >${row.status}</td>
+       <td class="pane" style="text-align:right">${row.seed}</td>
+       <td class="pane" style="text-align:left">${row.status}</td>
        <td class="pane" style="text-align:right">${row.coverage}</td>
-      <td class="pane" style="text-align:left" data="${row.coverage-prev.coverage}">
+      <td class="pane" style="text-align:right" data="${row.coverage-prev.coverage}">
                     ${diffCov}
        </td> 
        <td class="pane" style="text-align:right">${row.tplanCov}</td>
-      <td class="pane" style="text-align:left" data="${row.tplanCov-prev.tplanCov}">
+      <td class="pane" style="text-align:right" data="${row.tplanCov-prev.tplanCov}">
                     ${diffTplan}
        </td> 
-       <td class="pane" >${row.duration}</td>
-       <td class="pane" >${row.host}</td>
+       <td class="pane" style="text-align:right">${row.duration}</td>
+       <td class="pane" style="text-align:left">${row.host}</td>
         </tr>
       </j:forEach>
   </table>
