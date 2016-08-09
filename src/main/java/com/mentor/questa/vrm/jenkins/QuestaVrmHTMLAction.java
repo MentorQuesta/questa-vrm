@@ -24,7 +24,7 @@
 package com.mentor.questa.vrm.jenkins;
 
 import hudson.Util;
-import hudson.model.Action;
+import hudson.model.ProminentProjectAction;
 import hudson.util.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -38,15 +38,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class QuestaVrmHTMLAction implements Action {
+
+public class QuestaVrmHTMLAction implements ProminentProjectAction {
 
     private Map<String, String> fileChecksums = null;
 

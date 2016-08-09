@@ -110,7 +110,7 @@ public class QuestaVrmRegressionBuildAction  implements RunAction2, StaplerProxy
 
         File targetFile = getTargetFile(run.getParent());
         if (htmlReport && targetFile!=null) {
-            actions.add(new QuestaVrmHTMLAction(targetFile, "questavrmhtmlreport", "index.html", this.getIconFileName(), "Questa VRM Report"));
+            actions.add(new QuestaVrmHTMLAction(targetFile, "questavrmhtmlreport", "index.html", "/plugin/mentor-questa-vrm/icons/HTML.png", "Latest Questa HTML Report"));
         }
         
         actions.add(new QuestaVrmRegressionProjectAction(run.getParent(), run.getAction(TestResultAction.class)));
