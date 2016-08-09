@@ -60,33 +60,13 @@ public class QuestaVrmHTMLAction implements Action {
 
     private final String title;
 
-    private final List<String> safeExtensions;
-
-    /**
-     * Create a safe archive serving action.
-     *
-     * @param rootDir The root directory to be served by this action
-     * @param urlName The URL name used for this action
-     * @param indexFile The file name of the index file to be served when
-     * accessing the urlName URL
-     * @param iconName The icon used for the action in the side panel
-     * @param title The title of this action in the side panel
-     * @param safeExtensions The file extensions to be skipped from checksum
-     * recording and verification. These are file types whose unauthorized
-     * modification does not constitute a risk to users when viewed in a web
-     * browser. This should be resource file extensions like "gif" or "png" or
-     * file extensions of files not viewed in a browser like "zip" or "gz".
-     * Never specify file types possibly containing scripts or other possibly
-     * malicious data that can exploit users' browsers (html, js, swf, css, …).
-     */
+ 
     public QuestaVrmHTMLAction(File rootDir, String urlName, String indexFile, String iconName, String title, String... safeExtensions) {
         this.rootDir = rootDir;
         this.urlName = urlName;
         this.indexFile = indexFile;
         this.iconName = iconName;
-        this.title = title;
-        this.safeExtensions = Collections.unmodifiableList(Arrays.asList(safeExtensions));
-       
+        this.title = title; 
     }
 
     private void addFile(String relativePath, String checksum) {
@@ -120,10 +100,7 @@ public class QuestaVrmHTMLAction implements Action {
     }
 
     private void processDirectory(@Nonnull File directory, @Nullable String path)  {
-        if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.log(Level.FINER, "Scanning " + getRootDir());
-        }
-        File[] files = directory.listFiles();
+       File[] files = directory.listFiles();
        try {
         for (File file : files) {
 
@@ -135,7 +112,7 @@ public class QuestaVrmHTMLAction implements Action {
             if (file.isDirectory()) {
                 processDirectory(file, relativePath);
             }
-            if (file.isFile() && !isSafeFileType(file.getName())) {
+            if (file.isFile()) {
                 addFile(relativePath, calculateChecksum(file));
             }
         }} catch (IOException e){
@@ -143,28 +120,6 @@ public class QuestaVrmHTMLAction implements Action {
         } catch(NoSuchAlgorithmException e){
         
         }
-    }
-
-    /**
-     * Record the checksums of files in the specified directory and its
-     * descendants unless a file type is whitelisted as safe.
-     *
-     * @throws NoSuchAlgorithmException If the platform does unexpectedly not
-     * support SHA-1
-     * @throws IOException
-     */
-    public void processDirectory() throws NoSuchAlgorithmException, IOException {
-        LOGGER.log(Level.FINE, "Scanning " + getRootDir());
-        processDirectory(getRootDir(), null);
-    }
-
-    private boolean isSafeFileType(String filename) {
-        for (String extension : this.safeExtensions) {
-            if (filename.endsWith("." + extension)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -193,15 +148,8 @@ public class QuestaVrmHTMLAction implements Action {
             processDirectory(rootDir,null);
         }
         
-        if (LOGGER.isLoggable(Level.FINEST)) {
-            LOGGER.log(Level.FINEST, "Serving " + req.getRestOfPath());
-        }
-        
         if (req.getRestOfPath().equals("")) {
-            // serve the index page
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.log(Level.FINEST, "Redirecting to index file");
-            }
+            // Redirect to the index page
             throw HttpResponses.redirectTo(indexFile);
         }
 
@@ -213,69 +161,40 @@ public class QuestaVrmHTMLAction implements Action {
         File file = new File(getRootDir(), fileName);
 
         if (!new File(getRootDir(), fileName).exists()) {
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.log(Level.FINEST, "File does not exist: " + fileName);
-            }
-
             throw HttpResponses.notFound();
         }
 
-        if (isSafeFileType(fileName)) {
-            // skip checksum check if the file's extension is whitelisted
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.log(Level.FINEST, "Serving safe file: " + fileName);
-            }
-
-            serveFile(file, req, rsp);
-            return;
-        }
-
-        // if we're here, we know it's not a safe file type based on name
+        // file not in the marked as safe, abort 
         if (!fileChecksums.containsKey(fileName)) {
-            // file had no checksum recorded -- dangerous
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.log(Level.FINEST, "File exists but no checksum recorded: " + fileName);
-            }
-
             throw HttpResponses.notFound();
         }
 
-        // checksum recorded
-        // do not serve files outside the archive directory
+        // Check that the file is inside the archive rootDir
         if (!file.getAbsolutePath().startsWith(this.getRootDir().getAbsolutePath())) {
-            // TODO symlinks and similar insanity?
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.log(Level.FINEST, "File is outside archive directory: " + fileName);
-            }
-
             throw HttpResponses.notFound();
         }
 
-        // calculate actual file checksum
+       
         String actualChecksum;
         try {
             actualChecksum = calculateChecksum(file);
         } catch (NoSuchAlgorithmException nse) {
-            // cannot happen
+           
             throw new IllegalStateException(nse);
         }
 
         String expectedChecksum = getChecksum(fileName);
-
+        
+        // check checksum values
         if (!expectedChecksum.equals(actualChecksum)) {
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.log(Level.FINEST, "Checksum mismatch: recorded: "
-                        + expectedChecksum + ", actual: " + actualChecksum + " for file: " + fileName);
-            }
-
             throw HttpResponses.forbidden();
         }
 
-        serveFile(file, req, rsp);
+        serveSafeFile(file, req, rsp);
 
     }
 
-    private void serveFile(File file, StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+    private void serveSafeFile(File file, StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
         // serve the file without Content-Security-Policy
         long lastModified = file.lastModified();
         long length = file.length();
@@ -289,8 +208,5 @@ public class QuestaVrmHTMLAction implements Action {
             }
         }
     }
-
-    private static final Logger LOGGER = Logger.getLogger(QuestaVrmHTMLAction.class.getName());
    
-
 }
