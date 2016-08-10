@@ -2,7 +2,7 @@
 <!--
 The MIT License
 
-Copyright 2015 mamer.
+Copyright 2016 Mentor Graphics.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,8 @@ THE SOFTWARE.
     <j:set var="cov" value="${it.coverageResult}"/>
     <j:set var="history" value="${it.history}"/>
     <j:if test="${cov.containsCoverage()}">
-        <div align="center">
+       <!-- Causing to mess page layout -->
+       <!-- <div align="center"> -->
             <table align="center">
                 <tr>
                     <td>
@@ -73,7 +74,7 @@ THE SOFTWARE.
 
             </table>
      
-        </div>
+       <!-- </div> -->
         <j:if test="${it.isLeafLevel()}">
 
             <j:set var="id" value="simulation"/>
