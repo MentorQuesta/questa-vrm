@@ -37,14 +37,21 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringEscapeUtils;
 import com.mentor.questa.jenkins.Util;
+import com.mentor.questa.ucdb.jenkins.CoverageUtil;
+import com.mentor.questa.ucdb.jenkins.QuestaCoverageResult;
+import com.mentor.questa.ucdb.jenkins.QuestaUCDBResult;
+
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -70,6 +77,9 @@ public class QuestaVrmRegressionResult extends MetaTabulatedResult {
 
     private transient Run<?, ?> owner;
     private transient TestResult testResult;
+    
+    private transient Map<String, Map.Entry<Double, Double>> totalCovMap;
+    
     /**
      * All the actions are stored together to keep the order in which they are
      * retrieved
@@ -493,4 +503,24 @@ public class QuestaVrmRegressionResult extends MetaTabulatedResult {
         sb.append("</testsuite>");
         return sb.toString();
     }
+
+	public Map<String, Map.Entry<Double, Double>> getTotalCovMap() {
+		if (totalCovMap == null) {
+			totalCovMap = new HashMap<String, Map.Entry<Double, Double>>();
+			populateTotalCoverageResulsts();
+		}
+		return totalCovMap;
+	}
+
+	public void populateTotalCoverageResulsts() {
+		List<QuestaCoverageResult> coverageResults = CoverageUtil.getCoverageResult(this);
+		for (QuestaCoverageResult coverageResult : coverageResults) {
+			QuestaUCDBResult ucdbResult = coverageResult.getUcdbResult();
+			getTotalCovMap().put(ucdbResult.getCoverageId(), new AbstractMap.SimpleImmutableEntry<Double, Double>(
+					ucdbResult.getTotalCoverage(), ucdbResult.getTestplanCov()));
+
+		}
+	}
+    
+    
 }

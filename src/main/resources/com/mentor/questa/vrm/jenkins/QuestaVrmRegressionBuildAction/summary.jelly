@@ -65,6 +65,31 @@ THE SOFTWARE.
            onclick="javascript:showFailures()">Show All failed actions ${">>>"}</a>
       </j:if>
     </j:if>
+    
+     <j:if test="${!empty regr.totalCovMap}">
+  <br/><br/>
+  <table class="pane">
+  <tr>
+  <td class="pane-header">TestPlan Name</td>
+  <td class="pane-header">Total Coverage</td>
+  <td class="pane-header">TestPlan Coverage</td>
+  </tr>
+  <j:forEach var="entry" items="${regr.TotalCovMap}">
+  <tr>
+   <td class="pane" style="text-align:left;">
+   <j:out value="${entry.key}"/>
+   </td>
+   <td class="pane" style="text-align:right;">
+   <j:out value="${entry.value.key}"/>
+   </td>
+   <td class="pane" style="text-align:right;">
+   <j:out value="${entry.value.value}"/>
+   </td>
+  </tr>
+ 
+</j:forEach>
+ </table>
+ </j:if>
 
   </t:summary>
 </j:jelly>
