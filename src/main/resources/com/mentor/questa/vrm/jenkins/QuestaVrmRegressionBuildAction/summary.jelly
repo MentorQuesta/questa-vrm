@@ -65,7 +65,7 @@ THE SOFTWARE.
            onclick="javascript:showFailures()">Show All failed actions ${">>>"}</a>
       </j:if>
     </j:if>
-    
+<!--    
      <j:if test="${!empty regr.totalCovMap}">
   <br/><br/>
   <table class="pane">
@@ -90,6 +90,6 @@ THE SOFTWARE.
 </j:forEach>
  </table>
  </j:if>
-
+-->
   </t:summary>
 </j:jelly>
