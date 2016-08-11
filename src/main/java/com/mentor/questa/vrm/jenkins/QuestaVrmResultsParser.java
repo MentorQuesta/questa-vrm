@@ -123,7 +123,7 @@ public class QuestaVrmResultsParser extends TestResultParser implements Serializ
 
         }
         
-        private String processFilePath(File ws, String filename) {
+        private String processFilePath(File ws, String relativePath, String filename) {
             // Workaround for vrm windows path bug
             if (System.getProperty("file.separator").equals("\\")){
                 filename=filename.replace('/', '\\');
@@ -133,10 +133,14 @@ public class QuestaVrmResultsParser extends TestResultParser implements Serializ
             if (file.isAbsolute()) {
                 return getRelativePath(ws, filename);
             } else {
-                return vrmdata + System.getProperty("file.separator") + filename;
+                return relativePath!=null? relativePath+ System.getProperty("file.separator") :""+ filename;
             }
 
         }
+        
+         private String processFilePath(File ws, String filename){
+             return processFilePath(ws, vrmdata, filename);
+         }
         
         private final long buildTime;
         private final String testResults;
@@ -192,7 +196,7 @@ public class QuestaVrmResultsParser extends TestResultParser implements Serializ
                 ArrayList<String> covhtmlreports = new ArrayList<String>();
                 if (jsonobject.containsKey(REGR_HTMLREPORTS)) {
                     for (Object covhtmlreport : jsonobject.getJSONArray(REGR_HTMLREPORTS)) {
-                        covhtmlreports.add(processFilePath(ws, covhtmlreport.toString()));
+                        covhtmlreports.add(processFilePath(ws, null,covhtmlreport.toString()));
                     }
                 }
 
