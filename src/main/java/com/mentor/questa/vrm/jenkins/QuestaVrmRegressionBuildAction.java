@@ -28,11 +28,9 @@ import com.thoughtworks.xstream.XStream;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.XmlFile;
-import hudson.model.Job;
 import hudson.tasks.BuildStepMonitor;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
-import java.util.Collections;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.junit.TestResultAction;
@@ -46,34 +44,27 @@ import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerProxy;
 
 
-/**
- *
- * 
- */
+public class QuestaVrmRegressionBuildAction implements RunAction2, StaplerProxy, SimpleBuildStep.LastBuildAction {
 
-
-public class QuestaVrmRegressionBuildAction  implements RunAction2, StaplerProxy, SimpleBuildStep.LastBuildAction {
-    
-    public transient Run<?,?> run;
+    public transient Run<?, ?> run;
     public final boolean htmlReport;
-   
+
     private transient WeakReference<QuestaVrmRegressionResult> questaVrmResultRef;
-     
+
     public QuestaVrmRegressionBuildAction(AbstractBuild owner, boolean htmlReport) {
-        this.run= owner;
+        this.run = owner;
         this.htmlReport = htmlReport;
     }
 
     @Override
     public void onAttached(Run<?, ?> run) {
-       this.run = run;
+        this.run = run;
     }
 
     @Override
     public void onLoad(Run<?, ?> run) {
         this.run = run;
     }
-    
 
     @Override
     public String getIconFileName() {
@@ -89,98 +80,113 @@ public class QuestaVrmRegressionBuildAction  implements RunAction2, StaplerProxy
         return run;
     }
 
-
     @Override
     public String getUrlName() {
         return "questavrmreport";
     }
 
-    private File getTargetFile(Job job){
-        File targetDir =  new File(job.getRootDir(), "questavrmhtmlreport");
-        if (!targetDir.exists( )) {
-            return null;
-        }
-        return targetDir;
-        
-        
-    }
-   @Override 
-   public Collection<? extends Action> getProjectActions() {
-        Collection<Action> actions = new ArrayList<Action>();
+    private boolean addCovHTMLAction(Collection<Action> actions, File dir, String path, int index) {
+        File archiveDir = new File(dir,path);
 
-        File targetFile = getTargetFile(run.getParent());
-        if (htmlReport && targetFile!=null) {
-            actions.add(new QuestaVrmHTMLAction(targetFile, "questavrmhtmlreport", "index.html", "/plugin/mentor-questa-vrm/icons/HTML.png", "Latest Questa HTML Report"));
+        if (archiveDir.exists()) {
+            actions.add(new QuestaVrmHTMLAction(archiveDir, QuestaVrmPublisher.COV_ARCHIVE_DIR+(index==0?"":index), "index.html", "/plugin/mentor-questa-vrm/icons/coverage-report.png",  "Latest Questa Coverage Report"+(index==0?"":" "+index)));
+            return true;
+        } 
+        return false;
+    }
+
+    @Override
+    public Collection<? extends Action> getProjectActions() {
+        Collection<Action> actions = new ArrayList<Action>();
+        File vrmHtmlDir = new File(run.getParent().getRootDir(), QuestaVrmPublisher.HTML_ARCHIVE_DIR);
+
+        if (htmlReport && vrmHtmlDir.exists()) {
+            actions.add(new QuestaVrmHTMLAction(vrmHtmlDir, QuestaVrmPublisher.HTML_ARCHIVE_DIR, "index.html", "/plugin/mentor-questa-vrm/icons/HTML.png", "Latest Questa VRM Report"));
+            QuestaVrmRegressionResult regressionResult = getResult();
+            
+            if (regressionResult.getCovHTMLReports().size() == 1) {
+                    if (!addCovHTMLAction(actions, vrmHtmlDir, regressionResult.getCovHTMLReports().get(0) , 0)) {
+                        // The coverage report is not nested within the VRM HTML directory.
+                         addCovHTMLAction(actions,  run.getParent().getRootDir(), QuestaVrmPublisher.COV_ARCHIVE_DIR, 0);
+                    }
+            } else {
+                
+                int index = 1;
+                for (String covHtmlReport : regressionResult.getCovHTMLReports()) {
+                    addCovHTMLAction(actions, vrmHtmlDir, covHtmlReport, index++);
+                }
+            }
         }
-        
+
         actions.add(new QuestaVrmRegressionProjectAction(run.getParent(), run.getAction(TestResultAction.class)));
         return actions;
     }
-   
+
     @Override
     public Object getTarget() {
         return getResult();
     }
-    
-     public BuildStepMonitor getRequiredMonitorService() {
+
+    public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
+
     public synchronized void setResult(QuestaVrmRegressionResult result, TaskListener listener) {
         result.freeze(run);
 
-        if (run!= null) {
-        // persist the data
-        try {
-            getDataFile().write(result);
-        } catch (IOException e) {
-            e.printStackTrace(listener.fatalError("Failed to save the VRM regression result"));
-        }
+        if (run != null) {
+            // persist the data
+            try {
+                getDataFile().write(result);
+            } catch (IOException e) {
+                e.printStackTrace(listener.fatalError("Failed to save the VRM regression result"));
+            }
         }
 
         this.questaVrmResultRef = new WeakReference<QuestaVrmRegressionResult>(result);
     }
-     public synchronized QuestaVrmRegressionResult getResult() {
+
+    public synchronized QuestaVrmRegressionResult getResult() {
         QuestaVrmRegressionResult r;
-        if(questaVrmResultRef==null) {
+        if (questaVrmResultRef == null) {
             r = load();
-            questaVrmResultRef= new WeakReference<QuestaVrmRegressionResult>(r);
+            questaVrmResultRef = new WeakReference<QuestaVrmRegressionResult>(r);
         } else {
             r = questaVrmResultRef.get();
         }
 
-        if(r==null) {
+        if (r == null) {
             r = load();
             questaVrmResultRef = new WeakReference<QuestaVrmRegressionResult>(r);
         }
-     
+
         return r;
     }
+
     private QuestaVrmRegressionResult load() {
         QuestaVrmRegressionResult r;
         try {
-            r = (QuestaVrmRegressionResult)getDataFile().read();
-         
+            r = (QuestaVrmRegressionResult) getDataFile().read();
+
         } catch (IOException e) {
-            r = new QuestaVrmRegressionResult("");  
+            r = new QuestaVrmRegressionResult("");
         }
         r.freeze(run);
         return r;
-        
+
     }
-    
+
     private XmlFile getDataFile() {
         return new XmlFile(XSTREAM, new File(run.getRootDir(), "vrmresults.xml"));
     }
-     
+
     private static final XStream XSTREAM = new XStream2();
 
-    
     static {
         XSTREAM.alias("regression", QuestaVrmRegressionResult.class);
         XSTREAM.alias("test", QuestaVrmTestResult.class);
         XSTREAM.alias("action", QuestaVrmActionResult.class);
         XSTREAM.registerConverter(new HeapSpaceStringConverter(), 100);
     }
-    
-    
+
 }

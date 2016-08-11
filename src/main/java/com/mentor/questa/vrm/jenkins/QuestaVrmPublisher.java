@@ -38,7 +38,6 @@ import hudson.model.Build;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Job;
 import hudson.model.Result;
 import hudson.model.Saveable;
 import hudson.model.TaskListener;
@@ -73,7 +72,10 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class QuestaVrmPublisher extends Recorder {
 
-    static final String TMP_DIRECTORY = "questaVrm-temporary";
+    static final String TMP_DIRECTORY = "questaVrm-temporary",
+            HTML_ARCHIVE_DIR = "questavrmhtmlreport",
+            COV_ARCHIVE_DIR = "covhtmlreport";
+
     private final String vrmdata;
 
     private boolean htmlReport = false;
@@ -84,7 +86,7 @@ public class QuestaVrmPublisher extends Recorder {
     private String vrmhtmldir;
 
     private String extraArgs = "";
- 
+
     private DescribableList<TestDataPublisher, Descriptor<TestDataPublisher>> testDataPublishers;
 
     private Double healthScaleFactor = 1.0;
@@ -182,30 +184,32 @@ public class QuestaVrmPublisher extends Recorder {
         build.addAction(regressionAction);
         build.addAction(new QuestaVrmHostAction(build));
     }
-    
-    private File getTargetFile(Job job){
-        File targetDir =  new File(job.getRootDir(), "questavrmhtmlreport");
-        if (!targetDir.exists( )) {
+
+    private File getOrCreateDir(File dir, String directoryName) {
+        File targetDir = new File(dir, directoryName);
+        if (!targetDir.exists()) {
             targetDir.mkdir();
-        } 
-        return targetDir;  
+        }
+        return targetDir;
+    }
+   
+    private void archiveHTMLReport( AbstractBuild<?, ?> build, BuildListener listener, FilePath fromDir, String src,  String target) throws IOException, InterruptedException {
+        listener.getLogger().println("Archiving  VRM HTML report...");
+
+        FilePath archiveDir = new FilePath(getOrCreateDir(build.getParent().getRootDir(), target));
+
+        // check whether the directory that contains the HTML report exists
+        if (!fromDir.exists()) {
+            listener.getLogger().println("[ERROR]: HTML report \'" + src + "\' not found. Skipping archiving HTML Report for build #" + build.getNumber() + ".");
+            return;
+        } else {
+            archiveDir.deleteContents();
+        }
+
+        fromDir.copyRecursiveTo("**/*", archiveDir);
+
     }
 
-    private void archiveHTMLReport( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException,InterruptedException {
-        listener.getLogger().println("Archiving  VRM HTML report...");
-       
-        FilePath targetPath=new FilePath(getTargetFile(build.getParent()));
-        
-        FilePath archiveDir = getWorkspace(build).child(getVrmhtmldir());
-        if(!archiveDir.exists()) {
-            listener.getLogger().println("[ERROR]: VRM HTML report \'"+getVrmhtmldir()+"\' not found. Skipping archiving HTML Report for build #"+build.getNumber()+".");
-        } else {
-            targetPath.deleteContents();
-        }
-        archiveDir.copyRecursiveTo("**/*", targetPath);
-        
-    }
-    
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
         if (!(build instanceof Build)) {
@@ -218,9 +222,9 @@ public class QuestaVrmPublisher extends Recorder {
 
             String cmd = constructCmdString(build, listener);
             try {
-            	ProcStarter ps = launcher.launch();
-            	ps.cmds(Util.tokenize(cmd)).envs(build.getEnvironment(listener)).stdin(null).stdout(new ByteArrayOutputStream()).pwd(getWorkspace(build));
-            	ps.quiet(true);
+                ProcStarter ps = launcher.launch();
+                ps.cmds(Util.tokenize(cmd)).envs(build.getEnvironment(listener)).stdin(null).stdout(new ByteArrayOutputStream()).pwd(getWorkspace(build));
+                ps.quiet(true);
                 Proc proc = launcher.launch(ps);
                 proc.join();
 
@@ -244,9 +248,21 @@ public class QuestaVrmPublisher extends Recorder {
             addVrmBuildActions(build, listener, regressionResult);
 
             if (isHtmlReport()) {
-                archiveHTMLReport(build, launcher, listener);
+                FilePath vrmHtmlDir = getWorkspace(build).child(getVrmhtmldir());
+                archiveHTMLReport(build,listener, vrmHtmlDir, getVrmhtmldir(), HTML_ARCHIVE_DIR);
+                
+                // Process Coverage HTML reports if necessary 
+                // if a single mergefile exists then the user might have changed the htmldir 
+                if (regressionResult.getCovHTMLReports().size() == 1){
+                   String covHtmlDir = regressionResult.getCovHTMLReports().get(0);
+                   
+                   FilePath covHtmlDirPath = vrmHtmlDir.child(covHtmlDir);
+                    if (!covHtmlDirPath.exists()) {
+                         archiveHTMLReport(build,listener, getWorkspace(build).child(covHtmlDir), covHtmlDir, COV_ARCHIVE_DIR);
+                    }
+                }
             }
-
+            
             // process data publishers
             processTestDataPublishers(build, launcher, listener, regressionResult);
 
@@ -280,7 +296,6 @@ public class QuestaVrmPublisher extends Recorder {
         return BuildStepMonitor.NONE;
     }
 
-
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
@@ -296,7 +311,6 @@ public class QuestaVrmPublisher extends Recorder {
         return vrmhtmldir;
     }
 
-
     /**
      * @param vrmhtmldir the vrmhtmldir to set
      */
@@ -304,7 +318,6 @@ public class QuestaVrmPublisher extends Recorder {
     public final void setVrmhtmldir(String vrmhtmldir) {
         this.vrmhtmldir = vrmhtmldir;
     }
-    
 
     @DataBoundSetter
     public final void setVrunExec(String vrunExec) {
@@ -445,4 +458,3 @@ public class QuestaVrmPublisher extends Recorder {
     }
 
 }
-

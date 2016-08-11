@@ -29,7 +29,6 @@ import hudson.model.Item;
 import hudson.model.Run;
 import hudson.tasks.junit.CaseResult;
 import hudson.tasks.junit.SuiteResult;
-import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.MetaTabulatedResult;
 import hudson.tasks.test.TestObject;
 import hudson.tasks.test.TestResult;
@@ -258,6 +257,11 @@ public class QuestaVrmRegressionResult extends MetaTabulatedResult {
     public float getDuration() {
         return duration;
     }
+    
+    public List<String> getCovHTMLReports() {
+        return covHTMLReports;
+    }
+    
 
     @Override
     public String getDisplayName() {
@@ -274,11 +278,7 @@ public class QuestaVrmRegressionResult extends MetaTabulatedResult {
         return owner;
     }
 
-    @Override
-    public AbstractTestResultAction getTestResultAction() {
-        return super.getTestResultAction(); //To change body of generated methods, choose Tools | Templates.
-    }
-
+   
     @Override
     public String getRelativePathFrom(TestObject it) {
 
